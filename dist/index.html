@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f6f2">
+  <meta name="description" content="一个不赶时间的个人空间。记录作品与思考，收藏风景和日常。">
+  <title>慢慢 · 一个不赶时间的个人空间</title>
+  <link rel="icon" type="image/svg+xml" href="assets/mark.svg">
+  <link rel="stylesheet" href="styles.css">
+  <script>try{const t=localStorage.getItem('quiet-theme');if(t==='dark')document.documentElement.dataset.theme='dark'}catch{}</script>
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到内容</a>
+  <header class="site-header">
+    <a class="brand" href="#/" aria-label="慢慢，返回首页"><svg class="brand-symbol" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M6 23V9l10 14V9l10 14V9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>慢慢<span class="brand-dot">.</span></span></a>
+    <nav class="main-nav" aria-label="主导航">
+      <a href="#/" data-nav="home">首页</a>
+      <a href="#/works" data-nav="works">作品</a>
+      <a href="#/writing" data-nav="writing">文章</a>
+      <a href="#/moments" data-nav="moments">足迹</a>
+      <a href="#/collection" data-nav="collection">收藏</a>
+    </nav>
+    <button class="icon-button theme-toggle" type="button" aria-label="切换到深色模式"></button>
+  </header>
+  <main id="main" tabindex="-1"></main>
+  <footer class="site-footer"><span>© 2026 慢慢<span class="footer-divider">/</span>保持好奇，慢慢生长。</span><button type="button" class="quiet-button" id="demo-note">关于这一版 <span aria-hidden="true">↗</span></button></footer>
+  <dialog class="lightbox" id="lightbox" aria-label="照片大图浏览">
+    <button type="button" class="lightbox-close" aria-label="关闭大图"></button>
+    <button type="button" class="lightbox-prev" aria-label="上一张照片"></button>
+    <figure><img id="lightbox-image" alt=""><figcaption><span id="lightbox-caption"></span><span id="lightbox-count"></span></figcaption></figure>
+    <button type="button" class="lightbox-next" aria-label="下一张照片"></button>
+  </dialog>
+  <dialog class="note-dialog" id="note-dialog"><div><span class="eyebrow">ABOUT THIS EDITION</span><h2>一个正在生长的空间。</h2><p>这是个人网站的第一版前台。名称、头像、作品、文章和摄影内容用于展示布局，之后可以替换为你的真实内容。</p><p>摄影示例来自 Unsplash，照片大图下方保留原图来源。示例作品可以直接体验。自建内容后台将在后续接入。</p><button type="button" class="pill-button" id="close-note">继续逛逛 <span aria-hidden="true">↗</span></button></div></dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

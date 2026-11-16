@@ -1,0 +1,56 @@
+[
+  {
+    "name": "mist-lake",
+    "src": "assets/mist-lake.jpg",
+    "source": "https://unsplash.com/photos/fx-HYPFP99k",
+    "author": "Ivan Rohovchenko",
+    "width": 1600,
+    "height": 1205,
+    "bytes": 396941
+  },
+  {
+    "name": "snow-peak",
+    "src": "assets/snow-peak.jpg",
+    "source": "https://unsplash.com/photos/xk-zYQSopow",
+    "author": "Zak Bernadsky",
+    "width": 1600,
+    "height": 1067,
+    "bytes": 162343
+  },
+  {
+    "name": "forest-lake",
+    "src": "assets/forest-lake.jpg",
+    "source": "https://unsplash.com/photos/8fVmVlnrN5k",
+    "author": "Unsplash",
+    "width": 1600,
+    "height": 2125,
+    "bytes": 611620
+  },
+  {
+    "name": "quiet-water",
+    "src": "assets/quiet-water.jpg",
+    "source": "https://unsplash.com/photos/aM8XcigNdDg",
+    "author": "Unsplash",
+    "width": 1600,
+    "height": 1201,
+    "bytes": 149894
+  },
+  {
+    "name": "green-mountain",
+    "src": "assets/green-mountain.jpg",
+    "source": "https://unsplash.com/photos/Mw3ZJ6c8Rn4",
+    "author": "Willi Nüchterlein",
+    "width": 1600,
+    "height": 2400,
+    "bytes": 372905
+  },
+  {
+    "name": "lake-stones",
+    "src": "assets/lake-stones.jpg",
+    "source": "https://unsplash.com/s/photos/relaxing-nature",
+    "author": "Unsplash",
+    "width": 1600,
+    "height": 1068,
+    "bytes": 199385
+  }
+]
