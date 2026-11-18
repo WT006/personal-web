@@ -73,12 +73,10 @@ function albumPage(album) {
       <span class="film-place">${esc(album.place)} · ${esc(album.date)}</span>
     </header>
     <figure class="film-viewer">
-      <button class="film-gate" type="button" aria-label="放大第一张照片">
-        <img src="${esc(first.src)}" alt="${esc(first.caption)}" draggable="false">
-        <span class="film-shutter" aria-hidden="true"></span>
-      </button>
+      <div class="film-gate"><div class="film-strip"></div></div>
       <figcaption class="film-foot">
-        <p class="film-caption" aria-live="polite">${esc(first.caption)}</p>
+        <div><p class="film-caption" aria-live="polite">${esc(first.caption)}</p>
+          <a class="film-credit" target="_blank" rel="noopener noreferrer" aria-label="查看当前照片来源"></a></div>
         <div class="film-controls"${album.images.length < 2 ? ' hidden' : ''}>
           <button type="button" class="film-prev" aria-label="上一张照片">${icon('left')}</button>
           <span class="film-counter"></span>
@@ -160,9 +158,7 @@ async function renderRoute(initial=false) {
   const film = main.querySelector('.film-viewer');
   if (film) {
     const album = albums.find(a => a.slug === slug);
-    filmViewer = mountFilmViewer(film, album.images.map(id => photos[id]), {
-      enlarge: index => openLightbox(album, index), onError: toast
-    });
+    filmViewer = mountFilmViewer(film, album.images.map(id => photos[id]), toast);
   }
 }
 window.addEventListener('hashchange',()=>renderRoute());
@@ -189,42 +185,6 @@ main.addEventListener('click',async event=>{
   if(filter){main.querySelectorAll('[data-filter]').forEach(el=>el.setAttribute('aria-pressed',String(el===filter)));const grid=document.getElementById('collection-grid');grid.innerHTML=bookmarkCards(filter.dataset.filter);main.querySelector('.page-number span').textContent=String(grid.children.length).padStart(2,'0');grid.classList.remove('filtering');void grid.offsetWidth;grid.classList.add('filtering');return}
 
 });
-
-const lightbox=document.getElementById('lightbox');
-const lightboxImage=document.getElementById('lightbox-image');
-let lightboxAlbum,lightboxIndex=0,lightboxReturnY=0,lightboxClosing=false;
-lightbox.querySelector('.lightbox-close').innerHTML=icon('close');
-lightbox.querySelector('.lightbox-prev').innerHTML=icon('left');
-lightbox.querySelector('.lightbox-next').innerHTML=icon('right');
-function updateLightbox(){
-  const photo=photos[lightboxAlbum.images[lightboxIndex]];
-  lightboxImage.src=photo.src;lightboxImage.alt=photo.caption;
-  lightboxImage.style.animation='none';void lightboxImage.offsetWidth;lightboxImage.style.animation='';
-  document.getElementById('lightbox-caption').innerHTML=`${photo.caption}<a href="${photo.source}" target="_blank" rel="noopener noreferrer">${photo.author==='Unsplash'?'图片来源':esc(photo.author)} / Unsplash ↗</a>`;
-  document.getElementById('lightbox-count').textContent=`${String(lightboxIndex+1).padStart(2,'0')} / ${String(lightboxAlbum.images.length).padStart(2,'0')}`;
-}
-function openLightbox(album,index){
-  if(!album)return;
-  lightboxAlbum=album;lightboxIndex=index;lightboxReturnY=window.scrollY;lightboxClosing=false;
-  updateLightbox();document.body.classList.add('modal-open');lightbox.showModal();requestAnimationFrame(()=>lightbox.classList.add('visible'));
-}
-function closeLightbox(){
-  if(lightboxClosing||!lightbox.open)return;
-  lightboxClosing=true;
-  if (currentRoute === '/moments/' + lightboxAlbum.slug) filmViewer?.select(lightboxIndex);
-  lightbox.classList.remove('visible');
-  setTimeout(()=>{lightbox.close();document.body.classList.remove('modal-open');window.scrollTo({top:lightboxReturnY,behavior:'instant'});lightboxClosing=false},reduced()?0:230);
-}
-function nextPhoto(direction){lightboxIndex=(lightboxIndex+direction+lightboxAlbum.images.length)%lightboxAlbum.images.length;updateLightbox()}
-lightbox.querySelector('.lightbox-close').addEventListener('click',closeLightbox);
-lightbox.querySelector('.lightbox-prev').addEventListener('click',()=>nextPhoto(-1));
-lightbox.querySelector('.lightbox-next').addEventListener('click',()=>nextPhoto(1));
-lightbox.addEventListener('cancel',event=>{event.preventDefault();closeLightbox()});
-lightbox.addEventListener('click',event=>{if(event.target===lightbox)closeLightbox()});
-document.addEventListener('keydown',event=>{if(!lightbox.open)return;if(event.key==='ArrowRight'){event.preventDefault();nextPhoto(1)}else if(event.key==='ArrowLeft'){event.preventDefault();nextPhoto(-1)}});
-let touchStart;
-lightboxImage.addEventListener('pointerdown',event=>{if(event.pointerType!=='mouse')touchStart={x:event.clientX,y:event.clientY}});
-lightboxImage.addEventListener('pointerup',event=>{if(!touchStart)return;const dx=event.clientX-touchStart.x,dy=event.clientY-touchStart.y;touchStart=null;if(Math.abs(dx)>45&&Math.abs(dy)<100)nextPhoto(dx<0?1:-1)});
 
 const note=document.getElementById('note-dialog');
 document.getElementById('demo-note').addEventListener('click',()=>note.showModal());
