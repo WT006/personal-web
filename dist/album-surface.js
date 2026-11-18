@@ -94,7 +94,7 @@ export function createSurface(roll, onLost) {
 
   function textureFor(image) {
     if (textures.has(image)) return textures.get(image);
-    if (!image.naturalWidth) return null;
+    if (!image.complete || !image.naturalWidth) return null;
     let texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
@@ -103,7 +103,8 @@ export function createSurface(roll, onLost) {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     try {
       if (Math.max(image.naturalWidth, image.naturalHeight) > maxTextureSize) throw new RangeError();
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+      if (gl.getError() !== gl.NO_ERROR) throw new Error('Cover texture unavailable');
     } catch {
       gl.deleteTexture(texture);
       texture = null;
