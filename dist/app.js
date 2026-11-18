@@ -1,3 +1,4 @@
+import { mountAlbumRoll } from './album-roll.js';
 import { works, articles, photos, albums, bookmarks } from './content.js';
 
 const main = document.getElementById('main');
@@ -41,7 +42,22 @@ function articlePage(article) {
 }
 
 function momentsPage() {
-  return `<section class="page">${pageHead('PLACES & MOMENTS','走走，看看。','一些走过的路，一些舍不得忘记的光。',albums.length,'本相册')}<div class="albums-grid">${albums.map((a,index)=>{const p=photos[a.cover];return `<a class="album-card reveal" style="--delay:${index*90}ms" href="#/moments/${a.slug}"><div class="album-cover"><img src="${p.src}" alt="${p.caption}" width="${p.width}" height="${p.height}" loading="${index===0?'eager':'lazy'}"><span class="photo-count">${String(a.images.length).padStart(2,'0')} PHOTOS</span></div><div class="album-caption"><h2>${a.title}</h2>${icon('arrow')}</div><div class="album-meta"><span>${a.place}</span><span class="meta-dot">·</span><span>${a.date}</span></div></a>`}).join('')}</div><div class="section-tail"><p class="small-note">示例影像来自 Unsplash，后续替换为你的拍摄。</p><span class="small-note">COLLECT MOMENTS, NOT THINGS.</span></div></section>`;
+  const cards = albums.map(album => {
+    const cover = photos[album.cover];
+    return `<a class="album-card" draggable="false" href="#/moments/${album.slug}">
+      <div class="album-cover">
+        <img src="${cover.src}" alt="${esc(cover.caption)}" width="${cover.width}" height="${cover.height}" draggable="false">
+        <canvas aria-hidden="true"></canvas>
+      </div>
+      <div class="album-caption"><h2>${esc(album.title)}</h2>${icon('arrow')}</div>
+      <div class="album-meta">${esc(album.place)} · ${album.date} · ${album.images.length} 张照片</div>
+    </a>`;
+  }).join('');
+  return `<section class="page album-index">
+    ${pageHead('PLACES & MOMENTS','走走，看看。','一些走过的路，一些舍不得忘记的光。',albums.length,'本相册')}
+    <div class="album-roll">${cards}</div>
+    <p class="small-note">示例影像来自 Unsplash。</p>
+  </section>`;
 }
 
 function albumPage(album) {
@@ -58,6 +74,7 @@ function collectionPage() {
 
 let scrollMemory = new Map();
 let currentRoute = '';
+let disposeAlbumRoll;
 let renderToken = 0;
 let revealObserver;
 let tocObserver;
@@ -100,6 +117,8 @@ async function renderRoute(initial=false) {
     if(!slug){content=momentsPage();title='足迹 · 慢慢'}else if(album){content=albumPage(album);title=album.title+' · 慢慢'}
   }else if(first==='collection'&&!slug){content=collectionPage();section='collection';title='收藏 · 慢慢'}
   if(!content)content=`<section class="page not-found"><span class="eyebrow">A LITTLE DETOUR</span><h1>好像走远了一点。</h1><p>这个页面暂时还没有内容。</p><a class="pill-button" href="#/">回到首页 ${icon('arrow')}</a></section>`;
+  disposeAlbumRoll?.();
+  disposeAlbumRoll = undefined;
   main.innerHTML=content;
   main.classList.remove('page-leaving');
   document.title=title;
@@ -108,6 +127,8 @@ async function renderRoute(initial=false) {
   window.scrollTo({top:scrollMemory.get(route)||0,behavior:'instant'});
   if(!initial)main.focus({preventScroll:true});
   setupReveals();
+  const roll = main.querySelector('.album-roll');
+  if (roll) disposeAlbumRoll = mountAlbumRoll(roll);
 }
 window.addEventListener('hashchange',()=>renderRoute());
 document.querySelector('.skip-link').addEventListener('click',event=>{event.preventDefault();main.focus();main.scrollIntoView({behavior:'instant',block:'start'})});
