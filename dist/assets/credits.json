@@ -52,5 +52,77 @@
     "width": 1600,
     "height": 1068,
     "bytes": 199385
+  },
+  {
+    "name": "paddle",
+    "src": "assets/paddle.jpg",
+    "width": 1280,
+    "height": 850,
+    "source": "https://unsplash.com/photos/7BjmDICVloE",
+    "author": "Roberto Nickson",
+    "bytes": 81556
+  },
+  {
+    "name": "red-canyon",
+    "src": "assets/red-canyon.jpg",
+    "width": 1280,
+    "height": 850,
+    "source": "https://unsplash.com/photos/_h7aBovKia4",
+    "author": "Philippe Wuyts",
+    "bytes": 209789
+  },
+  {
+    "name": "city-park",
+    "src": "assets/city-park.jpg",
+    "width": 1280,
+    "height": 850,
+    "source": "https://unsplash.com/photos/utwYoEu9SU8",
+    "author": "freddie marriage",
+    "bytes": 194474
+  },
+  {
+    "name": "snow-camp",
+    "src": "assets/snow-camp.jpg",
+    "width": 1280,
+    "height": 850,
+    "source": "https://unsplash.com/photos/yOujaSETXlo",
+    "author": "Wolfgang Lutz",
+    "bytes": 148211
+  },
+  {
+    "name": "river-pines",
+    "src": "assets/river-pines.jpg",
+    "width": 1280,
+    "height": 850,
+    "source": "https://unsplash.com/photos/mWRR1xj95hg",
+    "author": "Christian Joudrey",
+    "bytes": 267291
+  },
+  {
+    "name": "white-balconies",
+    "src": "assets/white-balconies.jpg",
+    "width": 1280,
+    "height": 850,
+    "source": "https://unsplash.com/photos/688Fna1pwOQ",
+    "author": "Julien Moreau",
+    "bytes": 83196
+  },
+  {
+    "name": "evening-city",
+    "src": "assets/evening-city.jpg",
+    "width": 1280,
+    "height": 850,
+    "source": "https://unsplash.com/photos/-icmOdYWXuQ",
+    "author": "Kevin Young",
+    "bytes": 130475
+  },
+  {
+    "name": "sea-arches",
+    "src": "assets/sea-arches.jpg",
+    "width": 1280,
+    "height": 850,
+    "source": "https://unsplash.com/photos/xcC5ozHk_N8",
+    "author": "Joseph Barrientos",
+    "bytes": 181539
   }
 ]

@@ -1,33 +1,15 @@
-// A single transparent WebGL layer draws the visible covers over their native links.
+// Each vertex is projected by the same gallery surface used to place the live captions.
 const vertex = `
   attribute vec2 uv;
-  uniform vec2 stage, origin, size;
-  uniform mediump vec2 pointer;
-  uniform float clock, phase, bend;
-  uniform mediump float hover;
+  attribute vec3 positionLight;
+  uniform vec2 stage;
   varying mediump vec2 photoUV;
   varying mediump float light;
   void main() {
-    vec2 p = uv * size;
-    float radius = max(size.y * .62, 120.);
-    float distanceToBend = max(0., bend - p.y);
-    float angle = min(distanceToBend / radius, 1.38);
-    float beyond = distanceToBend - radius * angle;
-    float depth = radius * (1. - cos(angle)) + beyond * sin(angle);
-    float wave = sin(uv.x * 5.2 - uv.y * 2.6 - clock * 1.18 + phase);
-    float slope = cos(uv.x * 5.2 - uv.y * 2.6 - clock * 1.18 + phase);
-    vec2 delta = (uv - pointer) * size / size.y;
-    float lift = exp(-dot(delta, delta) * 8.) * hover;
-    float scale = 1. / (1. + depth / (size.x * .85));
-    scale *= 0.982 + wave * .009 + lift * .008;
-    p.x = (p.x - size.x * .5) * scale + size.x * .5;
-    p.y += distanceToBend - radius * sin(angle) - beyond * cos(angle);
-    p.y = (p.y - size.y * .5) * .975 + size.y * .5
-        + size.y * (.010 * wave - .018 * lift);
-    vec2 clip = (origin + p) / stage * 2. - 1.;
+    vec2 clip = positionLight.xy / stage * 2. - 1.;
     gl_Position = vec4(clip.x, -clip.y, 0., 1.);
     photoUV = uv;
-    light = 1. - (1. - cos(angle)) * .28 + slope * .015 + lift * .035;
+    light = positionLight.z;
   }`;
 const fragment = `
   precision mediump float;
@@ -45,16 +27,16 @@ const fragment = `
 
 function buildMesh() {
   const points = [];
-  const columns = 32, rows = 40;
-  // Join adjacent rows with degenerate triangles for one draw per album.
-  for (let y = 0; y < rows; y++) {
-    if (y) points.push(0, y / rows);
+  const indices = [];
+  const columns = 28, rows = 40;
+  for (let y = 0; y <= rows; y++) {
     for (let x = 0; x <= columns; x++) {
-      points.push(x / columns, y / rows, x / columns, (y + 1) / rows);
+      points.push(x / columns, y / rows);
+      const i = y * (columns + 1) + x;
+      if (x < columns && y < rows) indices.push(i, i + columns + 1, i + 1, i + 1, i + columns + 1, i + columns + 2);
     }
-    if (y < rows - 1) points.push(1, (y + 1) / rows);
   }
-  return new Float32Array(points);
+  return { uv: new Float32Array(points), indices: new Uint16Array(indices) };
 }
 
 export function createSurface(roll, onLost) {
@@ -81,11 +63,21 @@ export function createSurface(roll, onLost) {
   const mesh = buildMesh();
   const buffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-  gl.bufferData(gl.ARRAY_BUFFER, mesh, gl.STATIC_DRAW);
+  gl.bufferData(gl.ARRAY_BUFFER, mesh.uv, gl.STATIC_DRAW);
   const uv = gl.getAttribLocation(program, 'uv');
   gl.enableVertexAttribArray(uv);
   gl.vertexAttribPointer(uv, 2, gl.FLOAT, false, 0, 0);
-  const u = Object.fromEntries('stage origin size pointer clock phase bend hover crop'.split(' ')
+  const indexBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, mesh.indices, gl.STATIC_DRAW);
+  const positions = new Float32Array(mesh.uv.length / 2 * 3);
+  const vertices = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, vertices);
+  gl.bufferData(gl.ARRAY_BUFFER, positions.byteLength, gl.DYNAMIC_DRAW);
+  const position = gl.getAttribLocation(program, 'positionLight');
+  gl.enableVertexAttribArray(position);
+  gl.vertexAttribPointer(position, 3, gl.FLOAT, false, 0, 0);
+  const u = Object.fromEntries('stage pointer hover crop'.split(' ')
     .map(name => [name, gl.getUniformLocation(program, name)]));
   const textures = new Map();
   const maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
@@ -114,39 +106,45 @@ export function createSurface(roll, onLost) {
   }
 
   return {
-    begin(rect, offset, height, time) {
+    begin(width, offset, height, gutter) {
       const density = Math.min(devicePixelRatio, 1.5);
-      const w = Math.max(1, Math.round(rect.width * density));
+      const w = Math.max(1, Math.round(width * density));
       const h = Math.max(1, Math.round(height * density));
       if (canvas.width !== w) canvas.width = w;
       if (canvas.height !== h) canvas.height = h;
       canvas.style.top = offset + 'px';
+      canvas.style.left = -gutter + 'px';
+      canvas.style.width = width + 'px';
       canvas.style.height = height + 'px';
       gl.viewport(0, 0, w, h);
       gl.clear(gl.COLOR_BUFFER_BIT);
-      gl.uniform2f(u.stage, rect.width, height);
-      gl.uniform1f(u.clock, time);
+      gl.uniform2f(u.stage, width, height);
     },
-    paint(item, rect, left, top) {
+    paint(item, rect, project, top, gutter) {
       const texture = textureFor(item.image);
       if (!texture) return false;
       const aspect = rect.width / rect.height;
       const imageAspect = item.image.naturalWidth / item.image.naturalHeight;
       gl.bindTexture(gl.TEXTURE_2D, texture);
       gl.uniform2f(u.crop, Math.min(1, aspect / imageAspect), Math.min(1, imageAspect / aspect));
-      gl.uniform2f(u.origin, rect.left - left, rect.top - top);
-      gl.uniform2f(u.size, rect.width, rect.height);
       gl.uniform2f(u.pointer, item.x, item.y);
-      gl.uniform1f(u.phase, item.phase);
       gl.uniform1f(u.hover, item.hover);
-      gl.uniform1f(u.bend, Math.min(innerHeight * .33, rect.height * .72) - rect.top);
-      gl.drawArrays(gl.TRIANGLE_STRIP, 0, mesh.length / 2);
+      for (let i = 0, j = 0; i < mesh.uv.length; i += 2) {
+        const point = project(rect.x + mesh.uv[i] * rect.width, rect.y + mesh.uv[i + 1] * rect.height);
+        positions[j++] = point.x + gutter;
+        positions[j++] = point.y - top;
+        positions[j++] = point.light;
+      }
+      gl.bufferSubData(gl.ARRAY_BUFFER, 0, positions);
+      gl.drawElements(gl.TRIANGLES, mesh.indices.length, gl.UNSIGNED_SHORT, 0);
       return true;
     },
     dispose() {
       canvas.removeEventListener('webglcontextlost', onLost);
       textures.forEach(texture => gl.deleteTexture(texture));
       gl.deleteBuffer(buffer);
+      gl.deleteBuffer(indexBuffer);
+      gl.deleteBuffer(vertices);
       gl.deleteProgram(program);
       canvas.remove();
       if (!gl.isContextLost()) gl.getExtension('WEBGL_lose_context')?.loseContext();

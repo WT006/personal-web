@@ -42,15 +42,14 @@ function articlePage(article) {
 }
 
 function momentsPage() {
-  const cards = albums.map(album => {
+  const cards = albums.map((album, index) => {
     const cover = photos[album.cover];
     return `<a class="album-card" draggable="false" href="#/moments/${album.slug}">
       <div class="album-cover">
-        <img src="${cover.src}" alt="${esc(cover.caption)}" width="${cover.width}" height="${cover.height}" draggable="false">
-        <canvas aria-hidden="true"></canvas>
+        <img loading="${index < 4 ? 'eager' : 'lazy'}" src="${cover.src}" alt="${esc(cover.caption)}" width="${cover.width}" height="${cover.height}" draggable="false">
       </div>
-      <div class="album-caption"><h2>${esc(album.title)}</h2>${icon('arrow')}</div>
-      <div class="album-meta">${esc(album.place)} · ${album.date} · ${album.images.length} 张照片</div>
+      <div class="album-notes"><div class="album-caption"><h2>${esc(album.title)}</h2>${icon('arrow')}</div>
+      <div class="album-meta">${esc(album.place)} · ${album.date} · ${album.images.length} 张照片</div></div>
     </a>`;
   }).join('');
   return `<section class="page album-index">

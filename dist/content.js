@@ -27,7 +27,15 @@ export const photos = {
   'forest-lake':{src:'assets/forest-lake.jpg',width:1600,height:2125,caption:'沿着岸边走，听见很轻的风。',source:'https://unsplash.com/photos/8fVmVlnrN5k',author:'Unsplash'},
   'quiet-water':{src:'assets/quiet-water.jpg',width:1600,height:1201,caption:'什么也不做，等一场雾散去。',source:'https://unsplash.com/photos/aM8XcigNdDg',author:'Unsplash'},
   'green-mountain':{src:'assets/green-mountain.jpg',width:1600,height:2400,caption:'把一些绿色，留在记忆里面。',source:'https://unsplash.com/photos/Mw3ZJ6c8Rn4',author:'Willi Nüchterlein'},
-  'lake-stones':{src:'assets/lake-stones.jpg',width:1600,height:1068,caption:'走到水边，时间也跟着慢了下来。',source:'https://unsplash.com/s/photos/relaxing-nature',author:'Unsplash'}
+  'lake-stones':{src:'assets/lake-stones.jpg',width:1600,height:1068,caption:'走到水边，时间也跟着慢了下来。',source:'https://unsplash.com/s/photos/relaxing-nature',author:'Unsplash'},
+  'paddle': {"src": "assets/paddle.jpg", "width": 1280, "height": 850, "caption": "船桨刚刚提起，湖面留下了窄窄的水痕。", "source": "https://unsplash.com/photos/7BjmDICVloE", "author": "Roberto Nickson"},
+  'red-canyon': {"src": "assets/red-canyon.jpg", "width": 1280, "height": 850, "caption": "落日沿着峡谷的石壁，留下一道铜红色的光。", "source": "https://unsplash.com/photos/_h7aBovKia4", "author": "Philippe Wuyts"},
+  'city-park': {"src": "assets/city-park.jpg", "width": 1280, "height": 850, "caption": "楼与楼之间，藏着一整片深绿色的树冠。", "source": "https://unsplash.com/photos/utwYoEu9SU8", "author": "freddie marriage"},
+  'snow-camp': {"src": "assets/snow-camp.jpg", "width": 1280, "height": 850, "caption": "黄色帐篷旁，雪地里的脚印通向山口。", "source": "https://unsplash.com/photos/yOujaSETXlo", "author": "Wolfgang Lutz"},
+  'river-pines': {"src": "assets/river-pines.jpg", "width": 1280, "height": 850, "caption": "河面映出松树和崖壁，岸边已经有了秋色。", "source": "https://unsplash.com/photos/mWRR1xj95hg", "author": "Christian Joudrey"},
+  'white-balconies': {"src": "assets/white-balconies.jpg", "width": 1280, "height": 850, "caption": "白色阳台层层错开，一直延伸到天空。", "source": "https://unsplash.com/photos/688Fna1pwOQ", "author": "Julien Moreau"},
+  'evening-city': {"src": "assets/evening-city.jpg", "width": 1280, "height": 850, "caption": "城市的天际线被暮色染成了暖金色。", "source": "https://unsplash.com/photos/-icmOdYWXuQ", "author": "Kevin Young"},
+  'sea-arches': {"src": "assets/sea-arches.jpg", "width": 1280, "height": 850, "caption": "海浪绕过石拱，把一道白线推向崖脚。", "source": "https://unsplash.com/photos/xcC5ozHk_N8", "author": "Joseph Barrientos"}
 };
 
 export const albums = [
@@ -42,7 +50,13 @@ export const albums = [
     slug: 'snowline', title: '雪线之上', place: '山脊', date: '2026.07',
     cover: 'snow-peak', description: '在这组示例照片里，山顶的残雪和近处的岩石隔着一片湖水。',
     images: ['snow-peak', 'lake-stones', 'quiet-water']
-  }
+  },
+  {"slug": "canyon-light", "title": "峡谷的余温", "place": "红岩峡谷", "date": "2026.06", "cover": "red-canyon", "description": "岩层把落日分成深浅不同的红。翻过这一页，再沿林间的河回到水边。", "images": ["red-canyon", "river-pines", "lake-stones"]},
+  {"slug": "city-above", "title": "楼顶看日落", "place": "城市上空", "date": "2026.05", "cover": "evening-city", "description": "从高处看天光经过楼顶，再低头看楼群环抱的树冠。", "images": ["evening-city", "city-park", "white-balconies"]},
+  {"slug": "tide-marks", "title": "潮水经过这里", "place": "海边石崖", "date": "2026.04", "cover": "sea-arches", "description": "白色的浪花替海岸画出轮廓，安静的水面又把它抹平。", "images": ["sea-arches", "quiet-water", "lake-stones"]},
+  {"slug": "lake-crossing", "title": "一桨划进蓝色里", "place": "湖上", "date": "2026.03", "cover": "paddle", "description": "木桨划进蓝色的倒影，远处岸边的树林慢慢靠近。", "images": ["paddle", "forest-lake", "quiet-water"]},
+  {"slug": "winter-camp", "title": "山口的帐篷", "place": "雪地营地", "date": "2026.02", "cover": "snow-camp", "description": "雪把山口的声音收了起来，一顶顶亮黄色帐篷格外醒目。", "images": ["snow-camp", "snow-peak", "mist-lake"]},
+  {"slug": "city-lines", "title": "仰望这座城", "place": "城市街区", "date": "2026.01", "cover": "white-balconies", "description": "先抬头看阳台的转角，再把目光拉远，看看城市怎样铺展开来。", "images": ["white-balconies", "city-park", "evening-city"]}
 ];
 
 export const bookmarks = [
