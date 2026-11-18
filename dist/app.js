@@ -1,3 +1,4 @@
+import { mountFilmViewer } from './film-viewer.js';
 import { mountAlbumRoll } from './album-roll.js';
 import { works, articles, photos, albums, bookmarks } from './content.js';
 
@@ -63,7 +64,29 @@ function momentsPage() {
 }
 
 function albumPage(album) {
-  return `<section class="page album-detail">${backLink('#/moments','所有相册')}<header class="page-head"><div><span class="eyebrow">${album.date} / ${album.place}</span><h1 class="page-title">${album.title}</h1><p class="album-story">${album.description.split('\n').join('<br>')}</p></div><span class="page-number"><span>${String(album.images.length).padStart(2,'0')}</span>张照片</span></header><div class="photo-grid">${album.images.map((id,index)=>{const p=photos[id];return `<figure class="photo-item reveal"><button type="button" class="photo-button" data-photo="${index}" data-album="${album.slug}" aria-label="放大照片 ${index+1}：${esc(p.caption)}"><img src="${p.src}" alt="${p.caption}" width="${p.width}" height="${p.height}" loading="${index<2?'eager':'lazy'}"></button><figcaption>${p.caption}</figcaption></figure>`}).join('')}</div><div class="section-tail">${backLink('#/moments','返回所有相册')}<span class="small-note">示例摄影 · 点击照片查看原图来源</span></div></section>`;
+  const first = photos[album.images[0]];
+  if (!first) return `<section class="page">${backLink('#/moments','所有相册')}<h1>${esc(album.title)}</h1><p>相册里还没有照片。</p></section>`;
+  return `<section class="page album-detail film-page">
+    <header class="film-head">
+      ${backLink('#/moments','所有相册')}
+      <h1>${esc(album.title)}</h1>
+      <span class="film-place">${esc(album.place)} · ${esc(album.date)}</span>
+    </header>
+    <figure class="film-viewer">
+      <button class="film-gate" type="button" aria-label="放大第一张照片">
+        <img src="${esc(first.src)}" alt="${esc(first.caption)}" draggable="false">
+        <span class="film-shutter" aria-hidden="true"></span>
+      </button>
+      <figcaption class="film-foot">
+        <p class="film-caption" aria-live="polite">${esc(first.caption)}</p>
+        <div class="film-controls"${album.images.length < 2 ? ' hidden' : ''}>
+          <button type="button" class="film-prev" aria-label="上一张照片">${icon('left')}</button>
+          <span class="film-counter"></span>
+          <button type="button" class="film-next" aria-label="下一张照片">${icon('right')}</button>
+        </div>
+      </figcaption>
+    </figure>
+  </section>`;
 }
 
 function bookmarkCards(kind='all') {
@@ -77,6 +100,7 @@ function collectionPage() {
 let scrollMemory = new Map();
 let currentRoute = '';
 let disposeAlbumRoll;
+let filmViewer;
 let renderToken = 0;
 let revealObserver;
 let tocObserver;
@@ -121,6 +145,8 @@ async function renderRoute(initial=false) {
   if(!content)content=`<section class="page not-found"><span class="eyebrow">A LITTLE DETOUR</span><h1>好像走远了一点。</h1><p>这个页面暂时还没有内容。</p><a class="pill-button" href="#/">回到首页 ${icon('arrow')}</a></section>`;
   disposeAlbumRoll?.();
   disposeAlbumRoll = undefined;
+  filmViewer?.dispose();
+  filmViewer = undefined;
   main.innerHTML=content;
   main.classList.remove('page-leaving');
   document.title=title;
@@ -131,6 +157,13 @@ async function renderRoute(initial=false) {
   setupReveals();
   const roll = main.querySelector('.album-roll');
   if (roll) disposeAlbumRoll = mountAlbumRoll(roll);
+  const film = main.querySelector('.film-viewer');
+  if (film) {
+    const album = albums.find(a => a.slug === slug);
+    filmViewer = mountFilmViewer(film, album.images.map(id => photos[id]), {
+      enlarge: index => openLightbox(album, index), onError: toast
+    });
+  }
 }
 window.addEventListener('hashchange',()=>renderRoute());
 document.querySelector('.skip-link').addEventListener('click',event=>{event.preventDefault();main.focus();main.scrollIntoView({behavior:'instant',block:'start'})});
@@ -154,8 +187,7 @@ main.addEventListener('click',async event=>{
   }
   const filter=event.target.closest('[data-filter]');
   if(filter){main.querySelectorAll('[data-filter]').forEach(el=>el.setAttribute('aria-pressed',String(el===filter)));const grid=document.getElementById('collection-grid');grid.innerHTML=bookmarkCards(filter.dataset.filter);main.querySelector('.page-number span').textContent=String(grid.children.length).padStart(2,'0');grid.classList.remove('filtering');void grid.offsetWidth;grid.classList.add('filtering');return}
-  const photo=event.target.closest('[data-photo]');
-  if(photo){openLightbox(albums.find(a=>a.slug===photo.dataset.album),Number(photo.dataset.photo))}
+
 });
 
 const lightbox=document.getElementById('lightbox');
@@ -178,7 +210,9 @@ function openLightbox(album,index){
 }
 function closeLightbox(){
   if(lightboxClosing||!lightbox.open)return;
-  lightboxClosing=true;lightbox.classList.remove('visible');
+  lightboxClosing=true;
+  if (currentRoute === '/moments/' + lightboxAlbum.slug) filmViewer?.select(lightboxIndex);
+  lightbox.classList.remove('visible');
   setTimeout(()=>{lightbox.close();document.body.classList.remove('modal-open');window.scrollTo({top:lightboxReturnY,behavior:'instant'});lightboxClosing=false},reduced()?0:230);
 }
 function nextPhoto(direction){lightboxIndex=(lightboxIndex+direction+lightboxAlbum.images.length)%lightboxAlbum.images.length;updateLightbox()}

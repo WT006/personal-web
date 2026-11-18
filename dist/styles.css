@@ -89,3 +89,50 @@
   .album-roll .on-surface img, .album-roll .outside-sheet { opacity: 1; }
   .album-roll .album-card > * { transform: none !important; pointer-events: auto; }
 }
+
+.film-page {
+  width: min(100%, 850px, calc(106svh + 80px));
+  padding: 12px 40px 54px;
+}
+.film-head {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.film-head .back-link { margin: 0; justify-self: start; }
+.film-head h1 { font: 500 clamp(23px, 2.3vw, 32px)/1.4 var(--serif); }
+.film-place { text-align: right; font-size: 10px; color: var(--muted); }
+.film-gate {
+  display: grid;
+  place-items: center;
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  aspect-ratio: 1.66;
+  padding: clamp(13px, 2.3vw, 30px);
+  overflow: hidden;
+  border-radius: 3px;
+  background: radial-gradient(ellipse at center, #20221f, #111210 76%);
+  box-shadow: 0 1px 2px #0002;
+  cursor: zoom-in;
+  touch-action: pan-y pinch-zoom;
+}
+.film-gate img { position: absolute; inset: 6%; width: 88%; height: 88%; object-fit: contain; user-select: none; }
+.film-shutter { position: absolute; inset: 0; pointer-events: none; background: #10110f; opacity: 0; }
+.film-foot { display: flex; align-items: baseline; justify-content: space-between; gap: 20px; padding: 14px 0 0; }
+.film-caption { font: 400 clamp(15px, 1.55vw, 19px)/1.8 var(--serif); }
+.film-controls { display: flex; align-items: center; gap: 3px; flex-shrink: 0; }
+.film-controls button { width: 42px; height: 44px; display: grid; place-items: center; background: transparent; border-radius: 50%; }
+.film-controls button:hover { background: var(--soft); }
+.film-controls .icon { width: 15px; height: 15px; }
+.film-counter { font: 11px/1.4 var(--sans); color: var(--muted); font-variant-numeric: tabular-nums; letter-spacing: 1px; }
+@media (max-width: 600px) {
+  .film-page { width: 100%; padding: 24px 20px 48px; }
+  .film-head { grid-template-columns: 1fr auto; gap: 9px; margin-bottom: 20px; }
+  .film-head .back-link { grid-column: 1 / -1; }
+  .film-gate { aspect-ratio: 1.04; }
+  .film-foot { align-items: flex-start; flex-direction: column; gap: 5px; }
+  .film-controls { align-self: flex-end; }
+}
