@@ -49,6 +49,7 @@
 }
 .album-index-head .page-title { font-size: clamp(28px, 3vw, 38px); }
 .album-roll {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 20px var(--column-gap);
@@ -58,7 +59,7 @@
 .album-roll .album-caption h2 { font-size: 19px; line-height: 1.4; }
 .album-roll .album-meta { margin-top: 2px; }
 .album-roll .album-cover img { transition: none; transform: none; filter: none; }
-.album-roll canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0; }
+.album-roll .album-cover canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0; }
 .album-roll .painted canvas { opacity: 1; }
 .album-roll .painted img { opacity: 0; }
 .album-roll .album-caption { margin-top: 7px; }
@@ -72,4 +73,20 @@
 @media(prefers-reduced-motion:reduce) {
   .album-roll .painted canvas { display: none; }
   .album-roll .painted img { opacity: 1; }
+}
+
+.album-roll > .album-surface {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  pointer-events: none;
+}
+.album-roll .on-surface img, .album-roll .on-surface canvas { opacity: 0; }
+@media (any-hover: hover) and (any-pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .album-roll .album-cover:not(.on-surface) > * { transition: transform .35s var(--ease); }
+  .album-roll .album-card:hover .album-cover:not(.on-surface) > * { transform: scale(1.1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .album-roll > .album-surface { display: none; }
+  .album-roll .on-surface img { opacity: 1; }
 }
