@@ -32,7 +32,17 @@ export const photos = {
 
 export const albums = [
   {slug:'mountain-letters',title:'山有回声',place:'山间 · 影像手记',date:'2026.10',cover:'mist-lake',description:'把脚步放慢一点，风景就会多一点。\n这一组示例影像，收集了山、雾和水面之间安静的片刻。',images:['mist-lake','forest-lake','snow-peak','green-mountain','quiet-water','lake-stones']},
-  {slug:'by-the-water',title:'等风，也等一场雾',place:'湖畔 · 片刻停留',date:'2026.09',cover:'quiet-water',description:'有时候，出发不需要很远的目的地。\n走到水边，坐一会儿，看云经过山顶，看光落在湖面。',images:['quiet-water','green-mountain','lake-stones','mist-lake']}
+  {slug:'by-the-water',title:'等风，也等一场雾',place:'湖畔 · 片刻停留',date:'2026.09',cover:'quiet-water',description:'有时候，出发不需要很远的目的地。\n走到水边，坐一会儿，看云经过山顶，看光落在湖面。',images:['quiet-water','green-mountain','lake-stones','mist-lake']},
+  {
+    slug: 'evergreens', title: '林间的绿', place: '林线', date: '2026.08',
+    cover: 'green-mountain', description: '这组示例照片从山坡的针叶林开始，沿着林线走向水边。',
+    images: ['green-mountain', 'forest-lake', 'mist-lake']
+  },
+  {
+    slug: 'snowline', title: '雪线之上', place: '山脊', date: '2026.07',
+    cover: 'snow-peak', description: '在这组示例照片里，山顶的残雪和近处的岩石隔着一片湖水。',
+    images: ['snow-peak', 'lake-stones', 'quiet-water']
+  }
 ];
 
 export const bookmarks = [

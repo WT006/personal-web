@@ -29,17 +29,46 @@
 @media(min-width:701px) and (max-height:800px){.home{padding-top:26px;padding-bottom:30px}.home .hello-row{margin-bottom:24px}.home-title{font-size:72px}.home-intro{padding-bottom:42px}.home-desc{margin-top:20px}.home-links{padding-top:20px}.home-aside{top:55px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-delay:0ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}.reveal{opacity:1;transform:none}}
 
-.album-index { max-width: 1050px; }
-.album-index .page-head { margin-bottom: clamp(30px, 5vw, 60px); }
-.album-roll { display: grid; gap: clamp(44px, 7vw, 86px); margin-bottom: 50px; }
-.album-roll .album-cover { aspect-ratio: 1.95; background: transparent; }
+/* The two cover rows share the space below the site header and captions.
+   Cap the gallery width on short screens to preserve the photographs' proportions. */
+.album-index {
+  max-width: 1160px;
+  padding-top: 8px;
+  --cover-height: clamp(108px, calc(50svh - 168px), 300px);
+  --column-gap: clamp(16px, 2vw, 28px);
+}
+.album-index-head, .album-roll, .album-index > .small-note {
+  max-width: calc(4.2 * var(--cover-height) + var(--column-gap));
+  margin-inline: auto;
+}
+.album-index-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+.album-index-head .page-title { font-size: clamp(28px, 3vw, 38px); }
+.album-roll {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px var(--column-gap);
+  margin-bottom: 32px;
+}
+.album-roll .album-cover { width: 100%; aspect-ratio: 2.1; background: transparent; }
+.album-roll .album-caption h2 { font-size: 19px; line-height: 1.4; }
+.album-roll .album-meta { margin-top: 2px; }
 .album-roll .album-cover img { transition: none; transform: none; filter: none; }
 .album-roll canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0; }
 .album-roll .painted canvas { opacity: 1; }
 .album-roll .painted img { opacity: 0; }
-.album-roll .album-caption { margin-top: 15px; }
+.album-roll .album-caption { margin-top: 7px; }
 .album-roll.dragging, .album-roll.dragging a { cursor: grabbing; user-select: none; }
-@media(max-width:700px) { .album-roll .album-cover { aspect-ratio: 1.32; } }
+@media (max-width: 600px) {
+  .album-index { padding-top: 32px; }
+  .album-index-head, .album-roll, .album-index > .small-note { max-width: none; }
+  .album-roll { grid-template-columns: 1fr; row-gap: 28px; }
+  .album-roll .album-cover { aspect-ratio: 1.7; }
+}
 @media(prefers-reduced-motion:reduce) {
   .album-roll .painted canvas { display: none; }
   .album-roll .painted img { opacity: 1; }

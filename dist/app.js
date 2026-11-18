@@ -54,7 +54,10 @@ function momentsPage() {
     </a>`;
   }).join('');
   return `<section class="page album-index">
-    ${pageHead('PLACES & MOMENTS','走走，看看。','一些走过的路，一些舍不得忘记的光。',albums.length,'本相册')}
+    <header class="album-index-head">
+      <h1 class="page-title">走走，看看。</h1>
+      <span class="small-note">${albums.length} 本相册</span>
+    </header>
     <div class="album-roll">${cards}</div>
     <p class="small-note">示例影像来自 Unsplash。</p>
   </section>`;
