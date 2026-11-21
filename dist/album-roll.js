@@ -1,4 +1,7 @@
 import { createSurface } from './album-surface.js';
+import { openAlbum } from './album-transition.js';
+import { spot, falloff, lightAt } from './room-light.js';
+import { sound } from './projector-sound.js';
 
 // All distances here are in CSS pixels. The sheet spans both columns and the gaps.
 // A cylinder with a tangent continuation keeps rows ordered as they turn away.
@@ -76,6 +79,40 @@ export function mountAlbumRoll(roll) {
   let surface;
   let inView = true;
   let dirty = true;
+
+  // The spotlight on the wall. It follows a mouse with a little inertia; with
+  // no mouse (or when the pointer leaves the window) it rests above the heading
+  // and drifts slowly.
+  const lamp = document.createElement('div');
+  lamp.className = 'gallery-light';
+  lamp.setAttribute('aria-hidden', 'true');
+  document.body.append(lamp);
+  const head = roll.parentElement?.querySelector('.album-index-head');
+  let pointer = null;
+  const rest = t => ({ x: innerWidth * (.5 + .07 * Math.sin(t * .23)), y: innerHeight * (.2 + .04 * Math.sin(t * .31 + 1)) });
+  function placeLamp() {
+    spot.r = Math.max(260, Math.min(520, Math.hypot(innerWidth, innerHeight) * .27));
+    const size = spot.r * 4;
+    if (lamp.size !== size) { lamp.style.width = lamp.style.height = size + 'px'; lamp.size = size; }
+    lamp.style.transform = `translate3d(${(spot.x - size / 2).toFixed(1)}px,${(spot.y - size / 2).toFixed(1)}px,0)`;
+  }
+  Object.assign(spot, rest(0));
+  placeLamp();
+  function moveLamp(elapsed) {
+    const goal = pointer || rest(clock);
+    const follow = 1 - Math.exp(-elapsed / (pointer ? 150 : 900));
+    spot.x += (goal.x - spot.x) * follow;
+    spot.y += (goal.y - spot.y) * follow;
+    placeLamp();
+    if (head) {
+      // The heading sits a little nearer than the wall: it drifts against the
+      // pointer and catches the light when the lamp passes behind it.
+      const r = head.getBoundingClientRect();
+      const lit = falloff(r.left + r.width / 2, r.top + r.height / 2);
+      head.style.transform = `translate3d(${(-cameraX * 10).toFixed(2)}px,${(-cameraY * 6).toFixed(2)}px,0)`;
+      head.style.setProperty('--head-light', (.74 + .26 * lit).toFixed(3));
+    }
+  }
   function measure() {
     for (const item of items) {
       const { card, cover, notes } = item;
@@ -103,6 +140,7 @@ export function mountAlbumRoll(roll) {
     if (dirty) measure();
     if (surface === undefined) surface = createSurface(roll, fallback);
     clock += elapsed / 1000;
+    moveLamp(elapsed);
     const actual = window.scrollY;
     eased += (actual - eased) * (1 - Math.exp(-elapsed / 85));
     const lag = Math.max(-150, Math.min(150, actual - eased));
@@ -116,7 +154,7 @@ export function mountAlbumRoll(roll) {
     const top = Math.max(-gutter, -bounds.top);
     const bottom = Math.min(bounds.height + gutter, innerHeight - bounds.top);
     if (bottom > top && bounds.width > 0) {
-      surface?.begin(bounds.width + gutter * 2, top, bottom - top, gutter);
+      surface?.begin(bounds.width + gutter * 2, top, bottom - top, gutter, bounds.left, bounds.top);
       for (const item of items) {
         const photo = item.photoRect, notes = item.textRect;
         // Test projected bounds so a receding row survives until its last caption leaves.
@@ -128,7 +166,10 @@ export function mountAlbumRoll(roll) {
         item.card.classList.remove('outside-sheet');
         placeElement(item.cover, photo, project);
         placeElement(item.notes, notes, project);
-        item.hover += ((item.active ? 1 : 0) - item.hover) * ease;
+        // Light comes up fairly quickly and drains away slowly.
+        const target = item.active ? 1 : 0;
+        item.hover += (target - item.hover) * (1 - Math.exp(-elapsed / (target > item.hover ? 170 : 560)));
+        shade(item, project, bounds);
         item.x += (item.targetX - item.x) * ease;
         item.y += (item.targetY - item.y) * ease;
         const painted = surface?.paint(item, photo, project, top, gutter);
@@ -136,6 +177,29 @@ export function mountAlbumRoll(roll) {
       }
     }
     schedule();
+  }
+  // Every photo stands under the same fixed light: it casts a shadow away from
+  // the source (longer the further it is), and its caption dims with it.
+  function shade(item, project, bounds) {
+    const photo = item.photoRect;
+    const centre = project(photo.x + photo.width / 2, photo.y + photo.height / 2);
+    const x = bounds.left + centre.x, y = bounds.top + centre.y;
+    const near = falloff(x, y);
+    // Cast shadow, thrown away from the lamp: long and soft when the light is
+    // far, shorter, darker and crisper as it comes close.
+    const dx = x - spot.x, dy = y - spot.y;
+    const reach = Math.hypot(dx, dy) || 1;
+    const length = 8 + 30 * Math.min(1, reach / (spot.r * 2.4));
+    const sx = dx / reach * length, sy = dy / reach * length;
+    const depth = .45 + .45 * near;
+    const h = item.hover;
+    const shadow = `${sx.toFixed(1)}px ${sy.toFixed(1)}px ${(52 - 18 * near).toFixed(0)}px -6px rgb(0 0 0 / ${depth.toFixed(3)}), ` +
+      `${(sx * .15).toFixed(1)}px ${(sy * .15).toFixed(1)}px 6px rgb(0 0 0 / ${(.25 + .3 * near).toFixed(3)})` +
+      (h > .01 ? `, 0 0 22px 1px rgb(226 234 255 / ${(.2 * h).toFixed(3)}), 0 0 70px 10px rgb(226 234 255 / ${(.08 * h).toFixed(3)})` : '');
+    if (shadow !== item.shadow) item.cover.style.boxShadow = item.shadow = shadow;
+    const lit = (lightAt(x, y) - .44) / .61;
+    const caption = Math.min(1, .38 + .62 * lit + .35 * h).toFixed(2);
+    if (caption !== item.caption) item.notes.style.opacity = item.caption = caption;
   }
   function schedule() {
     if (!frame) frame = requestAnimationFrame(draw);
@@ -147,6 +211,24 @@ export function mountAlbumRoll(roll) {
     targetY = 2 * event.clientY / innerHeight - 1;
   }, options);
   roll.addEventListener('pointerleave', () => { targetX = targetY = 0; }, options);
+  window.addEventListener('pointermove', event => {
+    if (event.pointerType === 'touch') return;
+    pointer = { x: event.clientX, y: event.clientY };
+    // The whole wall leans a touch toward the visitor, not only over the roll.
+    targetX = 2 * event.clientX / innerWidth - 1;
+    targetY = 2 * event.clientY / innerHeight - 1;
+    schedule();
+  }, { ...options, passive: true });
+  document.addEventListener('mouseout', event => {
+    if (!event.relatedTarget) { pointer = null; targetX = targetY = 0; }
+  }, options);
+  // Warm up audio while the visitor is still browsing, so opening an album
+  // never waits on it.
+  // (Creating it costs ~100ms, so do it while idle, not on the first gesture.)
+  const primeAudio = setTimeout(() => (window.requestIdleCallback || (fn => fn()))(() => {
+    if (!controller.signal.aborted) sound.prime();
+  }), 700);
+  controller.signal.addEventListener('abort', () => clearTimeout(primeAudio));
   const visibility = new IntersectionObserver(entries => {
     inView = entries[0].isIntersecting;
     schedule();
@@ -189,11 +271,35 @@ export function mountAlbumRoll(roll) {
   window.addEventListener('pointercancel', release, options);
   window.addEventListener('blur', release, options);
   roll.addEventListener('click', event => {
-    if (ignoreClick && event.detail) event.preventDefault();
+    if (ignoreClick && event.detail) {
+      event.preventDefault();
+      ignoreClick = false;
+      return;
+    }
     ignoreClick = false;
+    const card = event.target.closest('.album-card');
+    if (!card || event.defaultPrevented || event.button || event.metaKey || event.ctrlKey ||
+        event.shiftKey || event.altKey || motion.matches) return;
+    const item = items.find(entry => entry.card === card);
+    if (!item?.photoRect) return;
+    event.preventDefault();
+    const bounds = roll.getBoundingClientRect();
+    const onWall = item.cover.classList.contains('on-surface');
+    openAlbum({
+      href: card.getAttribute('href'),
+      image: item.image,
+      rect: { left: bounds.left + item.photoRect.x, top: bounds.top + item.photoRect.y,
+              width: item.photoRect.width, height: item.photoRect.height },
+      transform: item.cover.style.transform,
+      zoom: onWall ? 1 + .1 * item.hover : 1,
+      focus: { x: .5 + (item.x - .5) * .32, y: .5 + (item.y - .5) * .32 }
+    });
+    card.classList.add('chosen');
   }, options);
   return () => {
     controller.abort();
+    lamp.remove();
+    if (head) head.style.transform = '';
     visibility.disconnect();
     surface?.dispose();
     sizeObserver.disconnect();

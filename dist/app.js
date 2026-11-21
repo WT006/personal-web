@@ -1,4 +1,5 @@
 import { mountFilmViewer } from './film-viewer.js';
+import { handoffActive } from './album-transition.js';
 import { mountAlbumRoll } from './album-roll.js';
 import { works, articles, photos, albums, bookmarks } from './content.js';
 
@@ -73,11 +74,12 @@ function albumPage(album) {
       <span class="film-place">${esc(album.place)} · ${esc(album.date)}</span>
     </header>
     <figure class="film-viewer">
-      <div class="film-gate"><div class="film-strip"></div></div>
+      <div class="film-gate"><div class="film-perfs film-perfs-top" aria-hidden="true"></div><div class="film-window"></div><div class="film-perfs film-perfs-bottom" aria-hidden="true"></div></div>
       <figcaption class="film-foot">
         <div><p class="film-caption" aria-live="polite">${esc(first.caption)}</p>
           <a class="film-credit" target="_blank" rel="noopener noreferrer" aria-label="查看当前照片来源"></a></div>
         <div class="film-controls"${album.images.length < 2 ? ' hidden' : ''}>
+          <button type="button" class="film-sound" aria-pressed="true"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path class="wave" d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/><path class="cross" d="M16 9.5l5 5M21 9.5l-5 5"/></svg></button>
           <button type="button" class="film-prev" aria-label="上一张照片">${icon('left')}</button>
           <span class="film-counter"></span>
           <button type="button" class="film-next" aria-label="下一张照片">${icon('right')}</button>
@@ -122,7 +124,7 @@ async function renderRoute(initial=false) {
   const token = ++renderToken;
   const route = routeName();
   if(currentRoute) scrollMemory.set(currentRoute, window.scrollY);
-  if(!initial && !reduced()){
+  if(!initial && !reduced() && !handoffActive()){
     main.classList.add('page-leaving');
     await new Promise(resolve=>setTimeout(resolve,150));
     if(token!==renderToken)return;
@@ -145,6 +147,10 @@ async function renderRoute(initial=false) {
   disposeAlbumRoll = undefined;
   filmViewer?.dispose();
   filmViewer = undefined;
+  const space = content.includes('film-page') ? 'cinema' : content.includes('album-index') ? 'gallery' : '';
+  document.documentElement.classList.toggle('cinema', space === 'cinema');
+  document.documentElement.classList.toggle('gallery', space === 'gallery');
+  updateThemeButton();
   main.innerHTML=content;
   main.classList.remove('page-leaving');
   document.title=title;
@@ -165,7 +171,7 @@ window.addEventListener('hashchange',()=>renderRoute());
 document.querySelector('.skip-link').addEventListener('click',event=>{event.preventDefault();main.focus();main.scrollIntoView({behavior:'instant',block:'start'})});
 
 const themeButton=document.querySelector('.theme-toggle');
-function updateThemeButton(){const dark=document.documentElement.dataset.theme==='dark';themeButton.innerHTML=icon(dark?'sun':'moon');themeButton.setAttribute('aria-label',dark?'切换到浅色模式':'切换到深色模式');document.querySelector('meta[name="theme-color"]').content=dark?'#1d201d':'#f7f6f2'}
+function updateThemeButton(){const dark=document.documentElement.dataset.theme==='dark';themeButton.innerHTML=icon(dark?'sun':'moon');themeButton.setAttribute('aria-label',dark?'切换到浅色模式':'切换到深色模式');document.querySelector('meta[name="theme-color"]').content=document.documentElement.classList.contains('cinema')?'#050505':document.documentElement.classList.contains('gallery')?'#141513':dark?'#1d201d':'#f7f6f2'}
 themeButton.addEventListener('click',()=>{const next=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=next;try{localStorage.setItem('quiet-theme',next)}catch{}updateThemeButton()});
 updateThemeButton();
 

@@ -16,6 +16,9 @@
 - `dist/styles.css`：响应式样式、主题和动效。
 - `dist/app.js`：页面路由、相册浏览、文章阅读及收藏筛选。
 - `dist/content.js`：示例作品、文章、相册和收藏数据。
+- `dist/album-roll.js`、`dist/album-surface.js`：足迹页暗色展墙（弯曲相册墙与悬停光效）。
+- `dist/album-transition.js`：从展墙点进相册时，选中照片落入片窗的转场。
+- `dist/film-viewer.js`、`dist/projector-sound.js`：相册放映页与过片音效。
 - `dist/demos/`：可直接体验的两个示例作品。
 - `dist/assets/credits.json`：摄影示例的来源记录。
 

@@ -1,28 +1,42 @@
+import { ROOM_LIGHT_GLSL, spot } from './room-light.js';
+
 // Each vertex is projected by the same gallery surface used to place the live captions.
 const vertex = `
   attribute vec2 uv;
   attribute vec3 positionLight;
-  uniform vec2 stage;
+  uniform vec2 stage, origin, viewport;
   varying mediump vec2 photoUV;
+  varying highp vec2 screen;
   varying mediump float light;
   void main() {
     vec2 clip = positionLight.xy / stage * 2. - 1.;
+    screen = positionLight.xy + origin;          // viewport px
     gl_Position = vec4(clip.x, -clip.y, 0., 1.);
     photoUV = uv;
     light = positionLight.z;
   }`;
 const fragment = `
-  precision mediump float;
+  precision highp float;
   uniform sampler2D photo;
   uniform vec2 crop, pointer;
   uniform float hover;
   varying mediump vec2 photoUV;
+  varying highp vec2 screen;
   varying mediump float light;
+  ${ROOM_LIGHT_GLSL}
   void main() {
     vec2 focus = mix(vec2(.5), pointer, .32);
     vec2 sampleUV = (photoUV - focus) / (1. + .10 * hover) + focus;
     vec4 color = texture2D(photo, .5 + (sampleUV - .5) * crop);
-    gl_FragColor = vec4(color.rgb * light, 1.);
+    // Hover: a touch brighter, with cool white light gathering at the edges.
+    vec2 border = min(photoUV, 1. - photoUV);
+    float edge = 1. - smoothstep(0., .09, min(border.x, border.y / 2.1));
+    vec3 lit = color.rgb * (1. + .05 * hover) + vec3(.86, .91, 1.) * edge * hover * .09;
+    // Under the spotlight: full exposure, plus a soft sheen on the print that
+    // slides across the surface as the light moves.
+    float near = spotFalloff(screen);
+    float sheen = pow(near, 5.) * .075;
+    gl_FragColor = vec4((lit * roomLight(screen) + vec3(1., .99, .965) * sheen) * light, 1.);
   }`;
 
 function buildMesh() {
@@ -77,7 +91,7 @@ export function createSurface(roll, onLost) {
   const position = gl.getAttribLocation(program, 'positionLight');
   gl.enableVertexAttribArray(position);
   gl.vertexAttribPointer(position, 3, gl.FLOAT, false, 0, 0);
-  const u = Object.fromEntries('stage pointer hover crop'.split(' ')
+  const u = Object.fromEntries('stage origin viewport pointer hover crop spot spotRadius'.split(' ')
     .map(name => [name, gl.getUniformLocation(program, name)]));
   const textures = new Map();
   const maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
@@ -106,7 +120,7 @@ export function createSurface(roll, onLost) {
   }
 
   return {
-    begin(width, offset, height, gutter) {
+    begin(width, offset, height, gutter, left = 0, top = 0) {
       const density = Math.min(devicePixelRatio, 1.5);
       const w = Math.max(1, Math.round(width * density));
       const h = Math.max(1, Math.round(height * density));
@@ -119,6 +133,10 @@ export function createSurface(roll, onLost) {
       gl.viewport(0, 0, w, h);
       gl.clear(gl.COLOR_BUFFER_BIT);
       gl.uniform2f(u.stage, width, height);
+      gl.uniform2f(u.origin, left - gutter, top + offset);
+      gl.uniform2f(u.viewport, innerWidth, innerHeight);
+      gl.uniform2f(u.spot, spot.x, spot.y);
+      gl.uniform1f(u.spotRadius, spot.r);
     },
     paint(item, rect, project, top, gutter) {
       const texture = textureFor(item.image);
